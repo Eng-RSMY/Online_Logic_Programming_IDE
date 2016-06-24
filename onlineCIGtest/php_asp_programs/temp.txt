@@ -1,0 +1,361 @@
+sorts
+
+%patient info
+#patient = {sam, kelly, jane, lisa, kevin, eric}.
+#gender = {male, female}.
+#age = 0..200.
+#treatment_time = 0..1000.
+#race = {american_indian_or_alaska_native, asian, black, native_hawaiian_or_pacific_islander, white}.
+
+%patient diseases
+#diseases = {hypertension, diabetes, chronic_kidney_disease, type_1_diabetes, type_2_diabetes, osteoporosis, hypocalcemia, paget_disease_of_bone, prior_skeleton_radiation_therapy, 
+				bone_metastases, skeletal_malignancy_history, osteoarthritis, knee_OA, hand_OA, hip_OA, upperGI_comp}.
+
+%treatment
+#bisphosphonate = {alendronate, ibandronate, risedronate, zoledronic}.
+#medications = {metformin, sulfonylurea, thiazolidinedione, dpp4_inhibitor, glp1_receptor_agonist, basal_insulin, prandial_insulin, 
+				thiazide_type_diuretic, calcium_channel_blocker, angiotensin_converting_enzyme_inhibitor, angiotensin_receptor_blocker, 
+				pth, estrogenaa, calcitonin, rankl, acetaminophen, tramadol, corticosteroid, duloxetine, hyaluronan, capsaicin, topical_nsaid, oral_nsaid, nsaid_cox_inhibitor, 
+				nsaid_cox2_inhibitor, proton_pump_inhibitor}+#bisphosphonate.
+#taken = {intraarticular}.
+#supplement = {calcium_vitD}.
+
+%hypertension
+#systolicBP = 0..300.
+#diastolicBP = 0..200.
+#goalSBP = {less_than_140, less_than_150}.
+#goalDBP = {less_than_90}.
+#next_step = {add_2nd_drug, add_3rd_drug, add_other_class_drug, refer_to_specialist}.
+#rule = {do_not_take_ACEIs_and_ARBs_together}.
+
+%osteoporosis
+#gfr = 10..120.
+#habit = {smoking, alcoholic}.
+#condition = {no_uterus, high_creatinine, high_fracture_risk}.
+#also_taking = {glucocorticoids}.
+#state = {menopause, postmenopause}.
+#allergy = {salmon}.
+
+predicates
+
+race(#patient, #race).
+age(#patient, #age).
+gender(#patient, #gender).
+diagnosed(#patient, #diseases).
+treated_for(#patient, #diseases, #treatment_time).
+taken(#medications, #taken).
+
+%treatment
+treatment(#patient, #medications).
+
+%hypertension
+bloodpressure(#patient, #systolicBP, #diastolicBP).
+goal(#goalSBP, #goalDBP).
+rules(#rule).
+
+%hypertension and diabetes
+next_step_treatment(#next_step).
+
+%osteoporosis
+gfr(#patient,#gfr).
+take_supplement(#patient,#supplement).
+also_taking(#patient,#also_taking).
+allergic_to(#patient,#allergy).
+state(#patient,#state).
+habit(#patient,#habit).
+should_quit(#patient,#habit).
+condition(#patient,#condition).
+
+%osteoarthritis
+experiencedGIBleedPastYr(#patient).
+
+rules
+
+%hypertention
+
+%recommendation 1 - patients older than 60 with blood pressure greater than 150/90 should have goal systolic blood pressure of less than 150.
+goal(less_than_150, less_than_90):- bloodpressure(N, A, B), A >= 150, B >= 90, 
+									age(N, Y), Y >= 60,
+									diagnosed(N, W), W = hypertension, not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+
+%if after 30 days, there is no change, add a second drug
+next_step_treatment(add_2nd_drug):- bloodpressure(N, A, B), A >= 150, B >= 90, 
+									age(N, Y), Y >= 60,
+									treated_for(N, V, Z), V = hypertension, Z >= 30, Z <= 60, 
+									diagnosed(N, W), W = hypertension, not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+
+%if after 60 days, there is no change, add a third drug									
+next_step_treatment(add_3rd_drug):- bloodpressure(N, A, B), A >= 150, B >= 90,
+									age(N, Y), Y >= 60, 
+									treated_for(N, V, Z), V = hypertension, Z >= 60, Z <= 90, 
+									diagnosed(N, W), W = hypertension, not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+
+%if after 90 days, there is no change, add a drug from another class or refer to a specialist
+next_step_treatment(add_other_class_drug) | next_step_treatment(refer_to_specialist):- bloodpressure(N, A, B), A >= 150, B >= 90, 
+																					   age(N, Y), Y >= 60, 
+																					   treated_for(N, V, Z), V = hypertension, Z >= 90,  
+																					   diagnosed(N, W), W = hypertension, 
+																					   not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+
+%recommendation 2 & 3 - patients younger than 60 with blood pressure of greater than 140/90 should have goal blood pressure of less than 140/90
+goal(less_than_140, less_than_90):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y < 60, 
+									diagnosed(N, W), W = hypertension, not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+
+%if after 30 days, there is no change, add a second drug
+next_step_treatment(add_2nd_drug):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y < 60, 
+									treated_for(N, V, Z), V = hypertension, Z >= 30, Z <= 60, 
+									diagnosed(N, W), W = hypertension, not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+
+%if after 60 days, there is no change, add a third drug	
+next_step_treatment(add_3rd_drug):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y < 60, 
+									treated_for(N, V, Z), V = hypertension, Z >= 60, Z <= 90, 
+									diagnosed(N, W), W = hypertension, not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+
+%if after 90 days, there is no change, add a drug from another class or refer to a specialist
+next_step_treatment(add_other_class_drug) | next_step_treatment(refer_to_specialist):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+																					   age(N, Y), Y < 60, 
+																					   treated_for(N, V, Z), V = hypertension, Z >= 90, 
+																					   diagnosed(N, W), W = hypertension, 
+																					   not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+
+%recommendation 4 - patients older than 18 with chronic kidney disease and blood pressure greater than 140/90 shoud have goal blood pressure of less than 140/90
+goal(less_than_140, less_than_90):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y >= 18, 
+									diagnosed(N, W), W = chronic_kidney_disease,
+									diagnosed(N, R), R = hypertension.
+
+%if after 30 days, there is no change, add a second drug
+next_step_treatment(add_2nd_drug):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y >= 18, 
+									treated_for(N, V, Z), V = hypertension, Z >= 30, Z <= 60, 
+									diagnosed(N, W), W = chronic_kidney_disease,
+									diagnosed(N, R), R = hypertension.
+
+%if after 60 days, there is no change, add a third drug	
+next_step_treatment(add_3rd_drug):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y >= 18, 
+									treated_for(N, V, Z), V = hypertension, Z >= 60, Z <= 90, 
+									diagnosed(N, W), W = chronic_kidney_disease.
+
+%if after 90 days, there is no change, add a drug from another class or refer to a specialist
+next_step_treatment(add_other_class_drug) | next_step_treatment(refer_to_specialist):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+																					   age(N, Y), Y >= 18, 
+																					   treated_for(N, V, Z), V = hypertension, Z >= 90, 
+																					   diagnosed(N, W), W = chronic_kidney_disease.
+
+%recommendation 5 - patients older than 18 with diabetes and blood pressure greater than 140/90 shoud have goal blood pressure of less than 140/90
+goal(less_than_140, less_than_90):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y >= 18, 
+									diagnosed(N, W), W = diabetes,
+									diagnosed(N, R), R = hypertension.
+
+%if after 30 days, there is no change, add a second drug
+next_step_treatment(add_2nd_drug):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y >= 18, 
+									treated_for(N, V, Z), V = hypertension, Z >= 30, Z <= 60, 
+									diagnosed(N, W), W = diabetes,
+									diagnosed(N, R), R = hypertension.
+
+%if after 60 days, there is no change, add a third drug	
+next_step_treatment(add_3rd_drug):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+									age(N, Y), Y >= 18, 
+									treated_for(N, V, Z), V = hypertension, Z >= 60, Z <= 90, 
+									diagnosed(N, W), W = diabetes,
+									diagnosed(N, R), R = hypertension.
+
+%if after 90 days, there is no change, add a drug from another class or refer to a specialist
+next_step_treatment(add_other_class_drug) | next_step_treatment(refer_to_specialist):- bloodpressure(N, A, B), A >= 140, B >= 90, 
+																					   age(N, Y), Y >= 18, 
+																					   treated_for(N, V, Z), V = hypertension, Z >= 90, 
+																					   diagnosed(N, W), W = diabetes.
+
+%recommendation 6 - non-black patients should be recommended thiazide type diuretics, calcium channel blockers, angiotensin converting enzyme inhibitors, angiotensin receptor blockers
+treatment(N, thiazide_type_diuretic) | treatment(N, calcium_channel_blocker) | treatment(N, angiotensin_converting_enzyme_inhibitor) | treatment(N, angiotensin_receptor_blocker) :- race(N, X), X != black, 
+diagnosed(N, W), W = diabetes, diagnosed(N, R), R = hypertension.
+treatment(N, thiazide_type_diuretic) | treatment(N, calcium_channel_blocker) | treatment(N, angiotensin_converting_enzyme_inhibitor) | treatment(N, angiotensin_receptor_blocker) :- race(N, X), X != black, 
+diagnosed(N, W), W = chronic_kidney_disease, diagnosed(N, R), R = hypertension.
+treatment(N, thiazide_type_diuretic) | treatment(N, calcium_channel_blocker) | treatment(N, angiotensin_converting_enzyme_inhibitor) | treatment(N, angiotensin_receptor_blocker) :- race(N, X), X != black, 
+diagnosed(N, W), W = hypertension, not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+rules(do_not_take_ACEIs_and_ARBs_together) :- race(N, X), X != black, diagnosed(N, R), R = hypertension.
+
+%recommendation 7 - black patients should be recommended thiazide type diuretics, calcium channel blockers
+treatment(N, thiazide_type_diuretic) | treatment(N, calcium_channel_blocker) :- race(N, X), X = black, 
+																		  diagnosed(N, W), W = hypertension, 
+																		  not diagnosed(N, diabetes), not diagnosed(N, chronic_kidney_disease).
+treatment(N, thiazide_type_diuretic) | treatment(N, calcium_channel_blocker) :- race(N, X), X = black, 
+																		  diagnosed(N, W), W = diabetes,
+																		  diagnosed(N, R), R = hypertension.
+treatment(N, thiazide_type_diuretic) | treatment(N, calcium_channel_blocker) :- race(N, X), X = black, 
+																		  diagnosed(N, W), W = chronic_kidney_disease,
+																		  diagnosed(N, R), R = hypertension.
+rules(do_not_take_ACEIs_and_ARBs_together) :- treatment(N, angiotensin_converting_enzyme_inhibitor).
+rules(do_not_take_ACEIs_and_ARBs_together) :- treatment(N, angiotensin_receptor_blocker).
+
+%recommendation 8 - patients older than 18 with chronic kidney disease and hypertension should be recommended either angiotensin converting enzyme inhibitors or angiotensin receptor blockers
+treatment(N, angiotensin_converting_enzyme_inhibitor) | treatment(N, angiotensin_receptor_blocker) :- age(N, Y), Y >= 18,
+																								diagnosed(N, W), W = chronic_kidney_disease,
+																								diagnosed(N, R), R = hypertension.
+
+%diabetes
+
+%patients with type 1 diabetes should be recommended insulin both prandial and basal
+treatment(N, basal_insulin):- diagnosed(N, X), X = type_1_diabetes.
+treatment(N, prandial_insulin):- diagnosed(N, X), X = type_1_diabetes.
+
+%patients with type 2 diabetes should be first recommended metformin
+treatment(N, metformin) :- diagnosed(N, X), X = type_2_diabetes,
+						   treated_for(N, V, Z), V = type_2_diabetes, Z < 270.
+
+%if blood sugar is still high after 3 months, patients should be recommended an additional drug within these five types: sulfonylurea, thiazolidinedione, DPP-4 inhibitor, GLP-1 receptor agonist, insulin
+treatment(N, sulfonylurea)|treatment(N, thiazolidinedione)|treatment(N, dpp4_inhibitor)|treatment(N, glp1_receptor_agonist)|treatment(N, basal_insulin)|treatment(N, prandial_insulin):- treated_for(N, V, Z), V = type_2_diabetes, Z >= 90, Z < 270,
+																																														 diagnosed(N, X), X = type_2_diabetes. 
+																
+%if blood sugar is still high after 6 months, patients should be recommended an additional drug within these five types: sulfonylurea, thiazolidinedione, DPP-4 inhibitor, GLP-1 receptor agonist, insulin																
+next_step_treatment(add_2nd_drug):- diagnosed(N, X), X = type_2_diabetes,
+									treated_for(N, V, Z), V = type_2_diabetes, Z >= 180.
+									
+
+%if blood sugar is still high after 9 months, patients should be recommended insulin																				   
+treatment(N, basal_insulin) :- treated_for(N, V, Z), V = type_2_diabetes, Z >= 270, diagnosed(N, X), X = type_2_diabetes.
+treatment(N, prandial_insulin) :- treated_for(N, V, Z), V = type_2_diabetes, Z >= 270, diagnosed(N, X), X = type_2_diabetes.
+
+
+%osteoporosis
+
+%if patient has a listed habit, then he/she has high fracture risk
+condition(N, high_fracture_risk) :- habit(N, Y).
+
+%if a person is female and age between 40 and 55, then she has condition menopause
+state(N, menopause) :- gender(N, female), age(N, Y), Y>=40, Y<=55.
+
+%if a person is female and older than 55, she is in the postmenopause state
+state(N,postmenopause) :- gender(N,female), age(N, Y), Y>55.
+
+%all patients with osteoporosis should take calcium_vitD
+take_supplement(X, calcium_vitD) :- diagnosed(N, osteoporosis).
+
+%all patients with habit(s) should quit
+should_quit(N, Q) :- habit(N, Q).
+
+%choose only one medication for a treatment if patient is diagnosed with osteoporosis
+treatment(N, pth)|treatment(N, estrogenaa)|treatment(N, calcitonin)|treatment(N, rankl)|treatment(N, alendronate)|treatment(N, ibandronate)|treatment(N, risedronate)|treatment(N, zoledronic):- state(N,postmenopause).
+treatment(N, pth)|treatment(N, estrogenaa)|treatment(N, calcitonin)|treatment(N, rankl)|treatment(N, alendronate)|treatment(N, ibandronate)|treatment(N, risedronate)|treatment(N, zoledronic):- gender(N,male).
+treatment(N, pth)|treatment(N, estrogenaa)|treatment(N, calcitonin)|treatment(N, rankl)|treatment(N, alendronate)|treatment(N, ibandronate)|treatment(N,  risedronate)|treatment(N, zoledronic):- condition(N,high_fracture_risk).
+
+%bisphosphonate should not be taken if gfr<30 or if at high risk for fractures
+-treatment(N, B) :- #bisphosphonate(B), gfr(N, L), L<30.
+-treatment(N, B) :- #bisphosphonate(B), condition(N, high_fracture_risk).
+
+%alendronate, risedronate, and zoledronic are all approved by the FDA for: prevention and treatment of postmenopausal osteoporosis,treatment to increase bone mass in men with osteoporosis, treatment of osteoporosis in men and women taking glucocorticoids
+%ibandronate: treatment of postmenopausal osteoporosis
+-treatment(N, ibandronate) :- condition(N, high_fracture_risk).
+-treatment(N, ibandronate) :- gender(N, male).
+-treatment(N, ibandronate) :- also_taking(N, glucocorticoids).
+
+%patient should not take zoledronic if creatinine level is high
+-treatment(N, zoledronic) :- condition(N, high_creatinine).
+
+%calcitonin is FDA-approved for: treatment of osteoporosis in women who are at least five years postmenopausal
+-treatment(N, calcitonin) :- age(N, Y), Y<=60.
+-treatment(N, calcitonin) :- condition(N, high_fracture_risk).
+-treatment(N, calcitonin) :- gender(N, male).
+-treatment(N, calcitonin) :- also_taking(N, glucocorticoids).
+-treatment(N, calcitonin) :- allergic_to(N, salmon).
+
+%estrogenaa is approved by the FDA for: treatment of osteoporosis in postmenopausal women
+-treatment(N, estrogenaa) :- gender(N, male).
+-treatment(N, estrogenaa) :- condition(N, high_fracture_risk).
+-treatment(N, estrogenaa) :- also_taking(N, glucocorticoids).
+
+%pth is approved by the FDA for: treatment of osteoporosis in postmenopausal women and men at high risk for fracture, treatment in men and women at high risk of fracture with osteoporosis associated with sustained systemic glucocorticoid therapy
+-treatment(N, pth) :- not condition(N, high_fracture_risk).
+treatment(N, pth) | treatment(N, rankl) :- condition(N, high_fracture_risk).
+
+%rankl is approved by the FDA for: treatment of osteoporosis in postmenopausal women at high risk of fracture, increasing bone mass in men at high risk of fracture
+%not recommended for patient to take rankl if he/she has hypocalcemia.
+-treatment(N, rankl) :- diagnosed(N, hypocalcemia).
+-treatment(N, rankl) :- also_taking(N, glucocorticoids).
+
+-treatment(N, pth) :- diagnosed(N, hypocalcemia).
+-treatment(N, pth) :- diagnosed(N, paget_disease_of_bone).
+-treatment(N, pth) :- diagnosed(N, prior_skeleton_radiation_therapy).
+-treatment(N, pth) :- diagnosed(N, bone_metastases).
+-treatment(N, pth) :- diagnosed(N, skeletal_malignancy_history).
+
+
+
+%osteoarthritis
+
+%both corticosteroid and hyaluronan are taken intraarticular
+taken(corticosteroid, intraarticular).
+taken(hyaluronan, intraarticular).
+
+%NSAIDs should not be taken orally if patient is older than 75; when patient has kidney disease
+-treatment(N, oral_nsaid) :- age(N, Y),
+					   		  Y >= 75.
+					   		  
+-treatment(N, oral_nsaid) :- diagnosed(N, chronic_kidney_disease).
+
+%knee or hip osteoarthritis
+
+%recommend acetaminophen, nsaid, tramadol, or corticosteroid for patients who are not older than 75 and who have been diagnosed with knee OA.
+treatment(N, acetaminophen) | treatment(N, oral_nsaid) | treatment(N, topical_nsaid) | treatment(N, tramadol) | treatment(N, corticosteroid) :- diagnosed(N, knee_OA),
+																																				age(N, Y), Y < 75.
+				   																														 
+%recommendations for patients with hip OA are the same as the recommendations for knee OA
+treatment(N, acetaminophen) | treatment(N, oral_nsaid) | treatment(N, tramadol) | treatment(N, corticosteroid) :- diagnosed(N, hip_OA).
+				   																															
+%no recommendations were made for the use of topical NSAIDs, duloxetine, and hyaluronan 
+
+%recommend tramadol, nsaid, duloxetine, or hyaluronan for patients who are diagnosed with knee OA and older than 75
+treatment(N, tramadol)|treatment(N, topical_nsaid)|treatment(N, duloxetine)|treatment(N, hyaluronan) :- diagnosed(N, knee_OA),
+																										age(N, Y), Y >= 75.
+			   																													
+%hand osteoarthritis
+
+%recommend tramadol, capsaicin, or nsaid for patients diagnosed with hand OA								
+treatment(N, tramadol) | treatment(N, capsaicin) | treatment(N, oral_nsaid) | treatment(N, topical_nsaid)  :- diagnosed(N, hand_OA).
+																		  							
+%TEP recommends that whenever an NSAID is used for the management of OA, practitioner should consider adding proton-pump inhibitor
+treatment(N, proton_pump_inhibitor) :- treatment(N, oral_nsaid).
+treatment(N, proton_pump_inhibitor) :- treatment(N, topical_nsaid).
+
+
+%if doctor prescribes an oral NSAID to a patient with past(hasn't bled in past year) GI complications
+%patient can use either a COX-2 selective inhibitor or a non-selective NSAID
+treatment(N, nsaid_cox_inhibitor) | treatment(N, nsaid_cox2_inhibitor) :- diagnosed(N, upperGI_comp),
+																		  -experiencedGIBleedPastYr(N),
+																		  treatment(N, oral_nsaid).
+																		  %%treatment(N, nsaid),
+																		 				  																		 				  
+
+%if doctor prescribes an oral NSAID to a patient with current(has bled in past year) GI complications
+%patient should use a COX-2 selective inhibitor			
+treatment(N, nsaid_cox2_inhibitor) :- diagnosed(N, upperGI_comp),
+									  experiencedGIBleedPastYr(N),
+									  treatment(N, oral_nsaid).
+									  %%taken(nsaid, oral).
+		
+%interactions
+
+%nsaids raise blood pressure and thus, not selected when patient also has hypertension
+:- treatment(N, topical_nsaid), diagnosed(N, hypertension).
+:- treatment(N, oral_nsaid), diagnosed(N, hypertension).
+
+%both varieties, cox 1 and cox 2 are eliminated from answer set
+:- treatment(N, nsaid_cox_inhibitor), diagnosed(N, hypertension).
+:- treatment(N, nsaid_cox2_inhibitor), diagnosed(N, hypertension).
+
+%thiazide type diuretics increase serum blood sugar and thus, not selected when patient also has diabetes(type 1 and type 2)
+:- treatment(N, thiazide_type_diuretic), diagnosed(N, type_1_diabetes).
+:- treatment(N, thiazide_type_diuretic), diagnosed(N, type_2_diabetes).
+
+%thiazide type diuretics reduce the efficacy of sulfonylurea and thus, answer sets with both medications are eliminated
+:- treatment(N, sulfonylurea), treatment(N, thiazide_type_diuretic).		
+													  
+													  													  
+age(kelly, 2).
+race(kelly, black).

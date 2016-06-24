@@ -1,0 +1,90 @@
+﻿<!DOCTYPE HTML>
+
+<html>
+	<head>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+		<title>REU Healthcare Problem</title>
+		<link href="css/input_styles.css" rel="stylesheet" type="text/css" media="screen">
+		<script src="js/input_pageJS.js"></script>
+		</head>
+	<body>
+		<div id="wrapper">
+			<div id="top">
+				<div id="logo"> <img src="images/Logo-small.jpg" alt="REU Declarative Program Logo" /></div>
+			</div>
+			<div id="topnav">
+				<ul>
+					<li><a href="home.html">HOME</a></li>
+					<li><a href="about_us.html">ABOUT US</a></li>
+					<li><a href="input_page.html">INPUT PAGE</a></li>
+					<li><a href="references.html">REFERENCES</a></li>
+					<li><a href="team_members.html">TEAM MEMBERS</a></li>
+				</ul>
+			</div>
+			<form method="post" action="php_asp_programs/process_info.php">
+				<div id="content"><h1>Patient Information</h1>	
+					<div>
+						<label> First Name:
+							<select name="firstname">
+								<option value="sam">Sam</option>
+								<option value="kelly">Kelly</option>
+								<option value="jane">Jane</option>
+								<option value="lisa">Lisa</option>
+								<option value="kevin">Kevin</option>
+								<option value="eric">Eric</option>
+							</select>
+						</label>	
+					</div>
+					<div>
+						<label>Last Name:
+							<input name="lastname" type="text" size="10" maxlength="30" required />
+						</label>	
+					</div>
+					<div>
+						<label>Date of Birth: 
+							<input name="DOB" type="date" />
+						</label>	
+					</div>
+					<div>
+						<label>Age:
+							<input name="age" min="0" max="200" type="number" required />
+						</label>
+					</div>
+					<div>
+						<label>Sex:
+							<input name="sex" value="male" type="radio" checked="true" />Male
+							<input name="sex" value="female" type="radio" />Female
+						</label>
+					</div>
+					<div>
+						<label> Race:
+							<select name="race">
+								<option value="american_indian_or_alaska_native">American Indian or Alaska Native</option>
+								<option value="asian">Asian</option>
+								<option value="black">African American</option>
+								<option value="native_hawaiian_or_pacific_islander">Native Hawaiian or Pacific Islander</option>
+								<option value="white">Caucasian</option>
+							</select>
+						</label>
+					</div>
+					<div id="medCondition">
+						<label> Medical Condition:
+							<input name="medcondition[]" id="medcondition" type="text" list="conditions" oninput="additionalInfo()" placeholder="Select a condition" required/>	
+							<datalist id="conditions">
+								<option value="Hypertension">Hypertension</option>
+								<option value="Type 1 diabetes">Type 1 diabetes</option>
+								<option value="Type 2 diabetes">Type 2 diabetes</option>
+								<option value="Osteoarthritis">Osteoarthritis</option>
+								<option value="Osteoporosis">Osteoporosis</option>
+							</datalist>
+						</label>
+					</div>						
+				</div>
+				<div id="submit_clear">
+					<input name="submit" type="submit" value="Submit Form" />
+					<input name="reset" type="reset" value="Clear All" />
+				</div>
+			</form>
+		</div>
+	</body>
+</html>

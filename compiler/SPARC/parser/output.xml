@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<answersets xmlns="http://www.ttu.edu/KRLab/AnswerSetSchema">
+   <answerset>
+      <literal name = "draw_line">
+         <instance sign = "true">
+            <term name = "square" />
+            <term name = "50" />
+            <term name = "50" />
+            <term name = "50" />
+            <term name = "100" />
+         </instance>
+         <instance sign = "true">
+            <term name = "square" />
+            <term name = "50" />
+            <term name = "50" />
+            <term name = "100" />
+            <term name = "50" />
+         </instance>
+         <instance sign = "true">
+            <term name = "square" />
+            <term name = "50" />
+            <term name = "100" />
+            <term name = "100" />
+            <term name = "100" />
+         </instance>
+         <instance sign = "true">
+            <term name = "square" />
+            <term name = "100" />
+            <term name = "100" />
+            <term name = "100" />
+            <term name = "50" />
+         </instance>
+      </literal>
+      <literal name = "draw_quad_curve">
+         <instance sign = "true">
+            <term name = "curve" />
+            <term name = "10" />
+            <term name = "10" />
+            <term name = "50" />
+            <term name = "50" />
+            <term name = "100" />
+            <term name = "50" />
+         </instance>
+      </literal>
+      <literal name = "draw_arc_curve">
+         <instance sign = "true">
+            <term name = "curve" />
+            <term name = "50" />
+            <term name = "50" />
+            <term name = "50" />
+            <term name = "1" />
+            <term name = "8" />
+         </instance>
+      </literal>
+   </answerset>
+</answersets>
